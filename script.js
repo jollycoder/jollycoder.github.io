@@ -86,7 +86,7 @@ function AnimateButton(options) {
     function onEvent(eventData, event) {
         var e = eventData.event;
         var fillColor = eventData.fillColor;
-        var gradType = 'ellipse';
+        var gradType = 'circle';
         var elem = button;
         var initGradientColor = eventData.initGradientColor;
 
