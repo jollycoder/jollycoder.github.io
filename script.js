@@ -2,13 +2,12 @@
 
 window.addEventListener('load', function () {
     var animate = new AnimateButton({
-        elem: document.querySelector('.button_inversion'),
-        fillToCursor: true,                             // если true — заливка при наведении будет идти к курсору, если false — к центру
-        fillScreenOnClick: true,                        // если true — при клике по кнопке заливаем весь экран
-        clickScreenFillColor: 'rgba(22, 77, 139, .5)',  // цвет заливки экрана при клике
-        clickButtonFillColor: '#164d8b',                // цвет заливки кнопки при клике
-        clickTextColor: 'white',                        // цвет текста кнопки при клике
-        parts: 12                                       // количество частей в анимации кнопки, чем больше — тем плавнее, но медленнее
+        elems: [ document.querySelector('.button_inversion'), document.querySelector('.Header__navigationLink_action') ],
+        clickScreenFillColor: 'rgba(22, 77, 139, .5)',  // цвет заливки экрана при клике по второй кнопке
+        clickButtonFillColor: '#164d8b',                // цвет заливки первой кнопки при клике
+        clickTextColor: 'white',                        // цвет текста первой кнопки при клике
+        parts: 16,                                      // количество частей в анимации кнопок, чем больше — тем плавнее, но медленнее
+        interval: 10                                    // задержка между частями анимации
     })
 });
 
@@ -46,30 +45,47 @@ function GetCoords() {
 function AnimateButton(options) {
     GetCoords.call(this);
 
-    var button = options.elem;
-    var parts = options.parts;
-
-    var interval = 10;
-    var firstColor = '#eb4634';
-    var secondColor = 'white';
-    var style = button.style;
-
-    var eventsData = [{
-        event: 'mouseover',
-        buttonTextColor: firstColor,
-        initGradientColor: 'rgba(255, 255, 255, 0)',
-        fillColor: secondColor
+    var buttonsData = [{
+        button: options.elems[0],
+        eventsData: [{
+            event: 'mouseover',
+            buttonTextColor: '#eb4634',
+            fillColor: 'white'
+        },  {
+            event: 'mouseout',
+            buttonTextColor: 'white',
+            fillColor: 'rgba(255, 255, 255, 0)'
+        },  {
+            event: 'click',
+            buttonTextColor: options.clickTextColor,
+            fillColor: options.clickButtonFillColor
+        }]
     },  {
-        event: 'mouseout',
-        buttonTextColor: secondColor,
-        initGradientColor: secondColor,
-        fillColor: 'rgba(255, 255, 255, 0)'
-    },  {
-        event: 'click',
-        buttonTextColor: options.clickTextColor,
-        initGradientColor: secondColor,
-        fillColor: options.clickButtonFillColor
+        button: options.elems[1],
+        eventsData: [{
+            event: 'mouseover',
+            buttonTextColor: '#eb4634',
+            fillColor: 'white'
+        },  {
+            event: 'mouseout',
+            buttonTextColor: 'white',
+            fillColor: 'rgba(235, 70, 52, .7)'
+        },  {
+            event: 'click',
+            fillColor: 'rgba(235, 70, 52, .7)'
+        }]
     }];
+
+    var parts = options.parts;
+    var interval = options.interval;
+    var counter = parts;
+
+    function initGradientArray(button) {
+        for (var i = 0, arr = []; i < parts; i++)  {
+            arr[i] = ( button == 1 ? 'rgba(255, 255, 255, 0)' : 'rgba(235, 70, 52, .7)' )
+        }
+        return arr
+    }
 
     function createDivOverAll()  {
         var cover = document.createElement("DIV");
@@ -83,60 +99,79 @@ function AnimateButton(options) {
         return cover
     }
 
-    function onEvent(eventData, event) {
-        var e = eventData.event;
+    function onEvent(eventData, gradientColors, event) {
+        var style = event.target.style;
+        var e = event.type;
+        var bool = e == 'mouseover';
         var fillColor = eventData.fillColor;
-        var gradType = 'circle';
-        var elem = button;
-        var initGradientColor = eventData.initGradientColor;
+        var elem = event.target;
+        var prevValue;
 
-        if (options.fillScreenOnClick && e == 'click')  {
-            gradType = 'circle';
-            initGradientColor = 'rgba(255, 255, 255, 0)';
+        if (e == 'click' && elem === buttonsData[1].button)  {
+            style.color = 'white';
+            style.height = style.lineHeight = '18px';
+            style.padding = '9px 15px';
+            style.border = '';
+            style.background = fillColor;
+
+            gradientColors = initGradientArray(1);
             fillColor = options.clickScreenFillColor;
-            parts = 60;
+            interval = 10;
             elem = createDivOverAll.call(this);
             style = elem.style
         }
         else style.color = eventData.buttonTextColor;
 
-        var gradientColors = [];
-        for (var i = 0; i < parts; i++)  {
-            gradientColors[i] = initGradientColor
-        }
-
         var left = '50%', top = '50%';
-        if (e != 'click' && options.fillToCursor)
-            left = this.getEventCoordOnElem(event, elem).x + 'px';
-
         if (e == 'click')  {
             left = this.getEventCoordOnElem(event, elem).x + 'px';
             top = this.getEventCoordOnElem(event, elem).y + 'px';
-            button.style.cursor = 'default';
 
-            eventsData.forEach(function (item) {
-                button.removeEventListener(item.event, item.listener)
-            });
+            if (event.target === buttonsData[0].button)  {
+                style.cursor = 'default';
+                buttonsData[0].eventsData.forEach(function (item) {
+                    event.target.removeEventListener(item.event, item.listener)
+                })
+            }
         }
 
-        var counter = 0;
+        if (elem === buttonsData[1].button && bool)  {
+            style.height = style.lineHeight = '14px';
+            style.padding = '9px 13px';
+            style.border = '2px solid #eb4634'
+        }
+
         var timer = setInterval(function () {
-            var index = (e != 'mouseover' ? counter : parts - 1 - counter);
-            gradientColors[index] = fillColor;
-            style.background = 'radial-gradient(' + gradType + ' at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
-            if (++counter == parts)  {
+            if ( bool ? counter > prevValue : counter < prevValue )  {
+                clearInterval(timer);
+                return
+            }
+            prevValue = ( counter += (bool ? -1 : 1) );
+
+            gradientColors[bool ? counter : counter - 1] = fillColor;
+            style.background = 'radial-gradient(circle farthest-side at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
+
+            if (counter == (bool ? 0 : parts))  {
+                if (elem === buttonsData[1].button && e == 'mouseout')  {
+                    style.height = style.lineHeight = '18px';
+                    style.padding = '9px 15px';
+                    style.border = ''
+                }
                 style.background = fillColor;
                 clearInterval(timer);
             }
         }, interval);
     }
 
-    (function setOnEvents()  {
-        style.transitionProperty = 'color';
-        style.transitionDuration = interval * parts + 'ms';
+    (function () {
+        buttonsData.forEach((function (item, i) {
+            item.gradientColors = initGradientArray(i);
+            item.button.style.transitionProperty = 'color';
+            item.button.style.transitionDuration = interval * parts + 'ms';
 
-        eventsData.forEach((function (item) {
-            button.addEventListener(item.event, item.listener = onEvent.bind(this, item))
-        }).bind(this));
+            item.eventsData.forEach((function (eventData) {
+                item.button.addEventListener(eventData.event, eventData.listener = onEvent.bind(this, eventData, item.gradientColors))
+            }).bind(this))
+        }).bind(this))
     }).call(this);
 }
