@@ -35,7 +35,7 @@ function animatePictures(options) {
         index: 0
     },  {
         sheet: document.styleSheets[0],
-        selector: '.' + options.parentClass + ':hover .TopCarCard__tint-red',
+        selector: '.' + options.parentClass + ':hover .' + options.tintClass,
         rules: 'top: 0 !important;' +
                'width:' + parentClass[0].offsetWidth + 'px !important;' +
                'height:' + parentClass[0].offsetHeight + 'px !important;',
