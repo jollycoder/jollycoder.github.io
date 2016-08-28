@@ -176,8 +176,7 @@ function AnimateButtons(options) {
 
         paddingTop: getComputedStyle(options.elems[1]).paddingTop,
         paddingRight: getComputedStyle(options.elems[1]).paddingRight,
-        lineHeight: getComputedStyle(options.elems[1]).lineHeight,
-        
+
         eventsData: [{
             event: 'mouseover',
             buttonTextColor: mainColor,
@@ -227,13 +226,11 @@ function AnimateButtons(options) {
         var fillColor = eventData.fillColor;
         var elem = event.target;
         var prevValue;
-        var lineHeight = buttonsData[1].lineHeight;
         var paddingTop = buttonsData[1].paddingTop;
         var paddingRight = buttonsData[1].paddingRight;
 
         if (e == 'click' && elem === buttonsData[1].button)  {
             style.color = 'white';
-            style.height = style.lineHeight = lineHeight;
             style.padding = paddingTop + ' ' + paddingRight;
             style.border = '';
             style.background = fillColor;
@@ -260,8 +257,7 @@ function AnimateButtons(options) {
         }
 
         if (elem === buttonsData[1].button && mouseover)  {
-            style.height = style.lineHeight = addToLeadNumber(lineHeight, -2);
-            style.padding = paddingTop + ' ' + addToLeadNumber(paddingRight, -1);
+            style.padding = addToLeadNumber(paddingTop, -1) + ' ' + addToLeadNumber(paddingRight, -1);
             style.border = '1px solid ' + mainColor
         }
 
@@ -278,7 +274,6 @@ function AnimateButtons(options) {
 
             if (counter == (mouseover ? 0 : parts))  {
                 if (elem === buttonsData[1].button && e == 'mouseout')  {
-                    style.height = style.lineHeight = lineHeight;
                     style.padding = paddingTop + ' ' + paddingRight;
                     style.border = '';
                 }
