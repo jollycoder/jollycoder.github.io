@@ -283,7 +283,7 @@ function AnimateButtons(options) {
         }, interval);
     }
 
-    (function () {
+    function setEventListeners() {
         buttonsData.forEach((function (item, i) {
             item.gradientColors = initGradientArray(i);
             item.button.style.transitionProperty = 'color';
@@ -293,5 +293,7 @@ function AnimateButtons(options) {
                 item.button.addEventListener(eventData.event, eventData.listener = onEvent.bind(this, eventData, item.gradientColors))
             }).bind(this))
         }).bind(this))
-    }).call(this);
+    }
+
+    setEventListeners.call(this);
 }
