@@ -152,16 +152,20 @@ function GetCoords() {
 function AnimateButtons(options) {
     GetCoords.call(this);
 
+    var mainColor = '#eb4634';
+    var transColor = 'rgba(255, 255, 255, 0)';
+    var transRed = 'rgba(235, 70, 52, .7)';
+
     var buttonsData = [{
         button: options.elems[0],
         eventsData: [{
             event: 'mouseover',
-            buttonTextColor: '#eb4634',
+            buttonTextColor: mainColor,
             fillColor: 'white'
         },  {
             event: 'mouseout',
             buttonTextColor: 'white',
-            fillColor: 'rgba(255, 255, 255, 0)'
+            fillColor: transColor
         },  {
             event: 'click',
             buttonTextColor: options.clickTextColor,
@@ -169,17 +173,22 @@ function AnimateButtons(options) {
         }]
     },  {
         button: options.elems[1],
+
+        paddingTop: getComputedStyle(options.elems[1]).paddingTop,
+        paddingRight: getComputedStyle(options.elems[1]).paddingRight,
+        lineHeight: getComputedStyle(options.elems[1]).lineHeight,
+        
         eventsData: [{
             event: 'mouseover',
-            buttonTextColor: '#eb4634',
+            buttonTextColor: mainColor,
             fillColor: 'white'
         },  {
             event: 'mouseout',
             buttonTextColor: 'white',
-            fillColor: 'rgba(235, 70, 52, .7)'
+            fillColor: transRed
         },  {
             event: 'click',
-            fillColor: 'rgba(235, 70, 52, .7)'
+            fillColor: transRed
         }]
     }];
 
@@ -187,9 +196,15 @@ function AnimateButtons(options) {
     var interval = options.interval;
     var counter = parts;
 
+    function addToLeadNumber(value, add)  {  // addToLeadNumber('16px', -2) => '14px'
+        return value.replace(/\d+/, function (match) {
+            return +match + add
+        })
+    }
+
     function initGradientArray(button) {
         for (var i = 0, arr = []; i < parts; i++)  {
-            arr[i] = ( button ? 'rgba(235, 70, 52, .7)' : 'rgba(255, 255, 255, 0)' )
+            arr[i] = ( button ? transRed : transColor )
         }
         return arr
     }
@@ -212,11 +227,14 @@ function AnimateButtons(options) {
         var fillColor = eventData.fillColor;
         var elem = event.target;
         var prevValue;
+        var lineHeight = buttonsData[1].lineHeight;
+        var paddingTop = buttonsData[1].paddingTop;
+        var paddingRight = buttonsData[1].paddingRight;
 
         if (e == 'click' && elem === buttonsData[1].button)  {
             style.color = 'white';
-            style.height = style.lineHeight = '18px';
-            style.padding = '9px 15px';
+            style.height = style.lineHeight = lineHeight;
+            style.padding = paddingTop + ' ' + paddingRight;
             style.border = '';
             style.background = fillColor;
 
@@ -242,9 +260,9 @@ function AnimateButtons(options) {
         }
 
         if (elem === buttonsData[1].button && mouseover)  {
-            style.height = style.lineHeight = '16px';
-            style.padding = '9px 14px';
-            style.border = '1px solid #eb4634'
+            style.height = style.lineHeight = addToLeadNumber(lineHeight, -2);
+            style.padding = paddingTop + ' ' + addToLeadNumber(paddingRight, -1);
+            style.border = '1px solid ' + mainColor
         }
 
         var timer = setInterval(function () {
@@ -260,9 +278,9 @@ function AnimateButtons(options) {
 
             if (counter == (mouseover ? 0 : parts))  {
                 if (elem === buttonsData[1].button && e == 'mouseout')  {
-                    style.height = style.lineHeight = '18px';
-                    style.padding = '9px 15px';
-                    style.border = ''
+                    style.height = style.lineHeight = lineHeight;
+                    style.padding = paddingTop + ' ' + paddingRight;
+                    style.border = '';
                 }
                 style.background = fillColor;
                 clearInterval(timer);
