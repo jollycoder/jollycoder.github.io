@@ -29,17 +29,22 @@ function IsMobileDevice() {
 }
 
 function GetCoords() {
-    this.getOffset = function (elem) {
-        var offsetTop = 0, offsetLeft = 0;
-        do  {
-            offsetTop += elem.offsetTop;
-            offsetLeft += elem.offsetLeft
-        } while ( (elem = elem.parentNode).tagName != 'HTML' );
-        return { top: offsetTop, left: offsetLeft }
+    this.getOffsetRect = function (elem) {
+        var box = elem.getBoundingClientRect();
+        var body = document.body;
+        var docElem = document.documentElement;
+        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
+        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
+        var clientTop = docElem.clientTop || body.clientTop || 0;
+        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+        var top  = box.top +  scrollTop - clientTop;
+        var left = box.left + scrollLeft - clientLeft;
+
+        return { top: Math.round(top), left: Math.round(left) }
     };
 
     this.getEventCoordOnElem = function (event, elem) {
-        var offset = this.getOffset(elem);
+        var offset = this.getOffsetRect(elem);
         return  {
             x: (event.pageX || event.changedTouches[0].pageX) - offset.left,
             y: (event.pageY || event.changedTouches[0].pageY) - offset.top
