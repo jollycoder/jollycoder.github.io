@@ -146,6 +146,7 @@ function AnimateButtons(options) {
         var paddingTop = buttonsData[1].paddingTop;
         var paddingRight = buttonsData[1].paddingRight;
 
+        var targetButton0 = (elem === buttonsData[0].button);
         var targetButton1 = (elem === buttonsData[1].button);
         var clickOrTouch = (e == 'click' || e == 'touchend');
         var button1Click = (clickOrTouch && targetButton1);
@@ -170,7 +171,7 @@ function AnimateButtons(options) {
             left = this.getEventCoordOnElem(event, elem).x + 'px';
             top = this.getEventCoordOnElem(event, elem).y + 'px';
 
-            if (elem === buttonsData[0].button)  {
+            if (targetButton0)  {
                 style.cursor = 'default';
                 buttonsData[0].eventsData.forEach(function (item) {
                     elem.removeEventListener(item.event, item.listener)
