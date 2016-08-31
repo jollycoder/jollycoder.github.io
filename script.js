@@ -113,14 +113,14 @@ function AnimateButtons(options) {
     var counter = parts;
 
     function addToLeadNumber(value, add)  {  // addToLeadNumber('16px', -2) => '14px'
-        return value.replace(/\d+/, function (match) {
-            return +match + add
+        return value.replace(/\d+/, function (found) {
+            return +found + add
         })
     }
 
-    function initGradientArray(button) {
+    function initGradientArray(color) {
         for (var i = 0, arr = []; i < parts; i++)  {
-            arr[i] = ( button ? transRed : transColor )
+            arr[i] = color
         }
         return arr
     }
@@ -158,7 +158,7 @@ function AnimateButtons(options) {
             style.border = '';
             style.background = transRed;
 
-            gradientColors = initGradientArray();
+            gradientColors = initGradientArray(transColor);
             interval = 10;
             elem = createDivOverAll.call(this);
             style = elem.style
@@ -168,8 +168,9 @@ function AnimateButtons(options) {
         var left = '50%', top = '50%';
         if (clickOrTouch)  {
             e == 'touchend' && (counter = 0);
-            left = this.getEventCoordOnElem(event, elem).x + 'px';
-            top = this.getEventCoordOnElem(event, elem).y + 'px';
+            var coords = this.getEventCoordOnElem(event, elem);
+            left = coords.x + 'px';
+            top = coords.y + 'px';
 
             if (targetButton0)  {
                 style.cursor = 'default';
@@ -211,7 +212,7 @@ function AnimateButtons(options) {
         buttonsData.forEach((function (item, i) {
             if (item.button == null)
                 return;
-            item.gradientColors = initGradientArray(i);
+            item.gradientColors = initGradientArray(i ? transRed : transColor);
             item.button.style.transitionProperty = 'color';
             item.button.style.transitionDuration = interval * parts + 'ms';
 
@@ -295,9 +296,9 @@ function AnimatePictures(options) {
         })
     }
 
-    function initGradientArray() {
+    function initGradientArray(color) {
         for (var i = 0, arr = []; i < parts; i++)  {
-            arr[i] = tintColor
+            arr[i] = color
         }
         return arr
     }
@@ -378,9 +379,10 @@ function AnimatePictures(options) {
         priceClass[i].style.zIndex = 9;
         carClass[i].style.zIndex = 10;
 
-        var gradientColors = initGradientArray();
-        var left = this.getEventCoordOnElem(event, event.target).x + 'px';
-        var top = this.getEventCoordOnElem(event, event.target).y + 'px';
+        var gradientColors = initGradientArray(tintColor);
+        var coords = this.getEventCoordOnElem(event, event.target);
+        var left = coords.x + 'px';
+        var top = coords.y + 'px';
 
         var counter = 0;
         timer = setInterval(function () {
