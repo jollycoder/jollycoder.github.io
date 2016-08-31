@@ -29,24 +29,20 @@ function IsMobileDevice() {
 }
 
 function GetCoords() {
-    this.getOffsetRect = function (elem) {
-        var box = elem.getBoundingClientRect();
-        var body = document.body;
-        var docElem = document.documentElement;
-        var scrollTop = window.pageYOffset || docElem.scrollTop || body.scrollTop;
-        var scrollLeft = window.pageXOffset || docElem.scrollLeft || body.scrollLeft;
-        var clientTop = docElem.clientTop || body.clientTop || 0;
-        var clientLeft = docElem.clientLeft || body.clientLeft || 0;
-        var top  = box.top +  scrollTop - clientTop;
-        var left = box.left + scrollLeft - clientLeft;
-
-        return { top: Math.round(top), left: Math.round(left) }
+    this.getOffset = function (elem) {
+        var offsetTop = 0, offsetLeft = 0;
+        do  {
+            offsetTop += elem.offsetTop;
+            offsetLeft += elem.offsetLeft
+        } while ( (elem = elem.parentNode).tagName != 'HTML' );
+        return { top: offsetTop, left: offsetLeft }
     };
 
     this.getEventCoordOnElem = function (event, elem) {
+        var offset = this.getOffset(elem);
         return  {
-            x: (event.pageX || event.changedTouches[0].pageX) - this.getOffsetRect(elem).left,
-            y: (event.pageY || event.changedTouches[0].pageY) - this.getOffsetRect(elem).top
+            x: (event.pageX || event.changedTouches[0].pageX) - offset.left,
+            y: (event.pageY || event.changedTouches[0].pageY) - offset.top
         }
     };
 
@@ -71,19 +67,23 @@ function AnimateButtons(options) {
         eventsData: [{
             event: 'mouseover',
             buttonTextColor: mainColor,
-            fillColor: 'white'
+            fillColor: 'white',
+            handler: onHoverButton0
         },  {
             event: 'mouseout',
             buttonTextColor: 'white',
-            fillColor: transColor
+            fillColor: transColor,
+            handler: onHoverButton0
         },  {
             event: 'click',
             buttonTextColor: options.clickTextColor,
-            fillColor: options.clickButtonFillColor
+            fillColor: options.clickButtonFillColor,
+            handler: onClickOrTouchButton0
         },  {
             event: 'touchend',
             buttonTextColor: options.clickTextColor,
-            fillColor: options.clickButtonFillColor
+            fillColor: options.clickButtonFillColor,
+            handler: onClickOrTouchButton0
         }]
     },  {
         button: options.elems[1],
@@ -94,23 +94,28 @@ function AnimateButtons(options) {
         eventsData: [{
             event: 'mouseover',
             buttonTextColor: mainColor,
-            fillColor: 'white'
+            fillColor: 'white',
+            handler: onHoverButton1
         },  {
             event: 'mouseout',
             buttonTextColor: 'white',
-            fillColor: transRed
+            fillColor: transRed,
+            handler: onHoverButton1
         },  {
             event: 'click',
-            fillColor: options.clickScreenFillColor
+            fillColor: options.clickScreenFillColor,
+            handler: onClickOrTouchButton1
         },  {
             event: 'touchend',
-            fillColor: options.clickScreenFillColor
+            fillColor: options.clickScreenFillColor,
+            handler: onClickOrTouchButton1
         }]
     }];
 
     var parts = options.parts;
     var interval = options.interval;
     var counter = parts;
+    var timer;
 
     function addToLeadNumber(value, add)  {  // addToLeadNumber('16px', -2) => '14px'
         return value.replace(/\d+/, function (found) {
@@ -136,76 +141,93 @@ function AnimateButtons(options) {
         return cover
     }
 
-    function onEvent(eventData, gradientColors, event) {
-        var style = event.target.style;
-        var e = event.type;
-        var mouseover = e == 'mouseover';
-        var fillColor = eventData.fillColor;
-        var elem = event.target;
-        var prevValue;
-        var paddingTop = buttonsData[1].paddingTop;
-        var paddingRight = buttonsData[1].paddingRight;
-
-        var targetButton0 = (elem === buttonsData[0].button);
-        var targetButton1 = (elem === buttonsData[1].button);
-        var clickOrTouch = (e == 'click' || e == 'touchend');
-        var button1Click = (clickOrTouch && targetButton1);
-
-        if (button1Click)  {
-            event.preventDefault();
-            style.color = 'white';
-            style.padding = paddingTop + ' ' + paddingRight;
-            style.border = '';
-            style.background = transRed;
-
-            gradientColors = initGradientArray(transColor);
-            interval = 10;
-            elem = createDivOverAll.call(this);
-            style = elem.style
+    function setEventData(eventData, event) {
+        return  {
+            style: event.target.style,
+            event: event.type,
+            mouseover: event.type == 'mouseover',
+            fillColor: eventData.fillColor,
+            elem: event.target,
+            paddingTop: buttonsData[1].paddingTop,
+            paddingRight: buttonsData[1].paddingRight,
+            targetButton1: event.target === buttonsData[1].button,
+            button1Click: (event.type == 'click' || event.type == 'touchend') && event.target === buttonsData[1].button
         }
-        else style.color = eventData.buttonTextColor;
+    }
 
-        var left = '50%', top = '50%';
-        if (clickOrTouch)  {
-            e == 'touchend' && (counter = 0);
-            var coords = this.getEventCoordOnElem(event, elem);
-            left = coords.x + 'px';
-            top = coords.y + 'px';
-
-            if (targetButton0)  {
-                style.cursor = 'default';
-                buttonsData[0].eventsData.forEach(function (item) {
-                    elem.removeEventListener(item.event, item.listener)
-                })
-            }
+    function makeFill(info, left, top, gradientColors) {
+        if ( info.mouseover ? counter > info.prevValue : counter < info.prevValue )  {
+            clearInterval(info.timer);
+            return
         }
+        info.prevValue = ( counter += (info.mouseover ? -1 : 1) );
 
-        if (targetButton1 && mouseover)  {
-            style.padding = addToLeadNumber(paddingTop, -1) + ' ' + addToLeadNumber(paddingRight, -1);
-            style.border = '1px solid ' + mainColor
+        var index = info.mouseover ? counter : counter - 1;
+        gradientColors[index] = info.fillColor;
+        info.style.background = 'radial-gradient(circle farthest-side at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
+
+        if (counter == (info.mouseover ? 0 : parts))  {
+            if (info.targetButton1 && info.event == 'mouseout')  {
+                info.style.padding = info.paddingTop + ' ' + info.paddingRight;
+                info.style.border = '';
+            }
+            info.style.background = info.fillColor;
+            clearInterval(info.timer);
+            info.button1Click && (document.location.href = info.elem.href)
         }
+    }
 
-        var timer = setInterval(function () {
-            if ( mouseover ? counter > prevValue : counter < prevValue )  {
-                clearInterval(timer);
-                return
-            }
-            prevValue = ( counter += (mouseover ? -1 : 1) );
+    function onHoverButton0(eventData, gradientColors, event) {
+        var info = setEventData(eventData, event);
+        info.style.color = eventData.buttonTextColor;
+        info.timer = setInterval(makeFill.bind(this, info, '50%', '50%', gradientColors), interval)
+    }
 
-            var index = mouseover ? counter : counter - 1;
-            gradientColors[index] = fillColor;
-            style.background = 'radial-gradient(circle farthest-side at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
+    function onHoverButton1(eventData, gradientColors, event) {
+        var info = setEventData(eventData, event);
+        info.style.color = eventData.buttonTextColor;
 
-            if (counter == (mouseover ? 0 : parts))  {
-                if (targetButton1 && e == 'mouseout')  {
-                    style.padding = paddingTop + ' ' + paddingRight;
-                    style.border = '';
-                }
-                style.background = fillColor;
-                clearInterval(timer);
-                button1Click && (document.location.href = event.target.href)
-            }
-        }, interval);
+        if (info.mouseover)  {
+            info.style.padding = addToLeadNumber(info.paddingTop, -1) + ' ' + addToLeadNumber(info.paddingRight, -1);
+            info.style.border = '1px solid ' + mainColor
+        }
+        info.timer = setInterval(makeFill.bind(this, info, '50%', '50%', gradientColors), interval)
+    }
+
+    function onClickOrTouchButton0(eventData, gradientColors, event) {
+        var info = setEventData(eventData, event);
+        info.style.color = eventData.buttonTextColor;
+
+        info.style.cursor = 'default';
+        buttonsData[0].eventsData.forEach(function (item) {
+            info.elem.removeEventListener(item.event, item.listener)
+        });
+        info.event == 'touchend' && (counter = 0);
+        var coords = this.getEventCoordOnElem(event, info.elem);
+        info.timer = setInterval(makeFill.bind(this, info, coords.x + 'px', coords.y + 'px', gradientColors), interval)
+    }
+
+    function onClickOrTouchButton1(eventData, gradientColors, event) {
+        event.preventDefault();
+
+        var info = setEventData(eventData, event);
+        info.style.color = 'white';
+        info.style.padding = info.paddingTop + ' ' + info.paddingRight;
+        info.style.border = '';
+        info.style.background = transRed;
+
+        gradientColors = initGradientArray(transColor);
+        interval = 10;
+        var elem = createDivOverAll.call(this);
+        info.style = elem.style;
+
+        buttonsData[1].eventsData.forEach(function (item) {
+            event.target.removeEventListener(item.event, item.listener)
+        });
+
+        info.event == 'touchend' && (counter = 0);
+        var coords = this.getEventCoordOnElem(event, elem);
+        info.timer = setInterval(makeFill.bind(this, info, coords.x + 'px', coords.y + 'px', gradientColors), interval)
     }
 
     function setButtonsData() {
@@ -217,7 +239,7 @@ function AnimateButtons(options) {
             item.button.style.transitionDuration = interval * parts + 'ms';
 
             item.eventsData.forEach((function (eventData) {
-                item.button.addEventListener(eventData.event, eventData.listener = onEvent.bind(this, eventData, item.gradientColors))
+                item.button.addEventListener(eventData.event, eventData.listener = eventData.handler.bind(this, eventData, item.gradientColors))
             }).bind(this))
         }).bind(this))
     }
