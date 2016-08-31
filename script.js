@@ -169,9 +169,9 @@ function AnimateButtons(options) {
     }
 
     function onHover1(eventData, gradientColors, event) {
-        var info = getEventData(eventData, event);
-        info.style.color = eventData.buttonTextColor;
-        info.timer = setInterval(makeFill.bind(this, info, '50%', '50%', gradientColors), interval)
+        var i = getEventData(eventData, event);
+        i.style.color = eventData.buttonTextColor;
+        i.timer = setInterval(makeFill.bind(this, i, '50%', '50%', gradientColors), interval)
     }
 
     function onHover2(eventData, gradientColors, event) {
