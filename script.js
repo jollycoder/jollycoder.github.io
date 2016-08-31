@@ -28,165 +28,6 @@ function IsMobileDevice() {
     })(navigator.userAgent || navigator.vendor || window.opera);
 }
 
-function AnimatePictures(options) {
-    GetCoords.call(this);
-    IsMobileDevice.call(this);
-
-    var parentClass = document.getElementsByClassName(options.parentClass);
-    var tintClass = document.getElementsByClassName(options.tintClass);
-    var priceClass = document.getElementsByClassName(options.priceClass);
-    var carClass = document.getElementsByClassName(options.carClass);
-    var darkClass = document.getElementsByClassName(options.darkClass);
-    var clickListeners = [];
-    var fillColor = options.fillColor;
-    var tintColor = 'rgba(235, 70, 52, .5)';
-    var parts = options.parts;
-    var interval = options.interval;
-    var timeout, timer;
-
-    var cssRules = [{
-        sheet: document.styleSheets[0],
-        selector: '.' + options.tintClass,
-        rules: 'transition: all .2s !important',
-        index: 0
-    },  {
-        sheet: document.styleSheets[0],
-        selector: '.hover, .' + options.parentClass + ':hover .' + options.tintClass,
-        rules: 'top: 0 !important;' +
-        'width:' + parentClass[0].offsetWidth + 'px !important;' +
-        'height:' + parentClass[0].offsetHeight + 'px !important;',
-        index: 0
-    }];
-
-    function deletePointerEvents() {
-        [tintClass, priceClass, carClass, darkClass].forEach(function (item) {
-            for (var i = 0; i < parentClass.length; i++)  {
-                item[i].style.pointerEvents = 'none'
-            }
-        })
-    }
-
-    function addCSSRule(sheet, selector, rules, index) {
-        if ('insertRule' in sheet) {
-            sheet.insertRule(selector + '{' + rules + '}', index);
-        }
-        else if ('addRule' in sheet) {
-            sheet.addRule(selector, rules, index);
-        }
-    }
-
-    function deleteCssRule(sheet, index) {
-        if ('deleteRule' in sheet)  sheet.deleteRule(index);
-        else if ('removeRule' in sheet)  sheet.removeRule(index)
-    }
-
-    function setCssRules(rules) {
-        rules.forEach(function (item) {
-            addCSSRule(item.sheet, item.selector, item.rules, item.index)
-        })
-    }
-
-    function setInitStyles() {
-        for (var i = 0; i < parentClass.length; i++)  {
-            var s = tintClass[i].style;
-            s.top = priceClass[i].offsetTop + 'px';
-            s.width = priceClass[i].offsetWidth + 'px';
-            s.height = priceClass[i].offsetHeight + 'px';
-            s.opacity = 1;
-            this.isMobile && (carClass[i].style.opacity = 1)
-        }
-    }
-
-    function initGradientArray() {
-        for (var i = 0, arr = []; i < parts; i++)  {
-            arr[i] = tintColor
-        }
-        return arr
-    }
-
-    function replaceElem(parent, child, backColor) {
-        var elem = document.createElement("DIV");
-        var s = elem.style;
-        s.pointerEvents = 'none';
-        s.position = 'absolute';
-        s.left = s.top = 0;
-        s.width = parent.offsetWidth + 'px';
-        s.height = parent.offsetHeight + 'px';
-        s.background = backColor;
-        parent.appendChild(elem);
-        parent.removeChild(child);
-        return elem
-    }
-
-    function setOnEvents ()  {
-        for (var i = 0; i < parentClass.length; i++)  {
-            parentClass[i].addEventListener('mouseover', onHover.bind(this));
-            parentClass[i].addEventListener('mouseout', onHover.bind(this));
-            parentClass[i].addEventListener('touchend', onClick.bind(this));
-            parentClass[i].addEventListener('click', clickListeners[i] = onClick.bind(this));
-        }
-    }
-
-    function onHover(event) {
-        for (var i = 0; i < parentClass.length; i++)  {
-            if (parentClass[i] === event.target)  break;
-        }
-        if (event.type == 'mouseout') {
-            clearTimeout(timeout);
-            clearInterval(timer);
-            carClass[i].style.opacity = 0;
-        }
-        else  {
-            timeout = setTimeout(function () {
-                var counter = 0;
-                timer = setInterval(function () {
-                    carClass[i].style.opacity = (++counter)/10;
-                    if (counter == 10) clearInterval(timer);
-                }, 15)
-            }, 100)
-        }
-    }
-
-    function onClick(event) {
-        event.preventDefault();
-
-        for (var i = 0; i < parentClass.length; i++)  {
-            if (parentClass[i] === event.target)  break;
-        }
-        if (event.type == 'touchend')  {
-            tintClass[i].classList.add('hover');
-            setTimeout(function () {
-                document.location.href = parentClass[i].href;
-            }, 150);
-            return
-        }
-
-        var s = replaceElem(parentClass[i], tintClass[i], tintColor).style;
-        priceClass[i].style.zIndex = 9;
-        carClass[i].style.zIndex = 10;
-
-        var gradientColors = initGradientArray();
-        var left = this.getEventCoordOnElem(event, event.target).x + 'px';
-        var top = this.getEventCoordOnElem(event, event.target).y + 'px';
-
-        var counter = 0;
-        timer = setInterval(function () {
-            gradientColors[counter++] = fillColor;
-            s.background = 'radial-gradient(circle farthest-side at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
-            if (counter == parts)  {
-                clearInterval(timer);
-                event.target.removeEventListener('click', clickListeners[i]);
-                document.location.href = parentClass[i].href;
-            }
-        }, interval)
-    }
-
-    setInitStyles.call(this);
-    deletePointerEvents();
-    setCssRules(cssRules);
-    setOnEvents.call(this);
-}
-
 function GetCoords() {
     this.getOffsetRect = function (elem) {
         var box = elem.getBoundingClientRect();
@@ -304,8 +145,10 @@ function AnimateButtons(options) {
         var prevValue;
         var paddingTop = buttonsData[1].paddingTop;
         var paddingRight = buttonsData[1].paddingRight;
+
+        var targetButton1 = (elem === buttonsData[1].button);
         var clickOrTouch = (e == 'click' || e == 'touchend');
-        var button1Click = (clickOrTouch && elem === buttonsData[1].button);
+        var button1Click = (clickOrTouch && targetButton1);
 
         if (button1Click)  {
             event.preventDefault();
@@ -335,7 +178,7 @@ function AnimateButtons(options) {
             }
         }
 
-        if (elem === buttonsData[1].button && mouseover)  {
+        if (targetButton1 && mouseover)  {
             style.padding = addToLeadNumber(paddingTop, -1) + ' ' + addToLeadNumber(paddingRight, -1);
             style.border = '1px solid ' + mainColor
         }
@@ -352,7 +195,7 @@ function AnimateButtons(options) {
             style.background = 'radial-gradient(circle farthest-side at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
 
             if (counter == (mouseover ? 0 : parts))  {
-                if (elem === buttonsData[1].button && e == 'mouseout')  {
+                if (targetButton1 && e == 'mouseout')  {
                     style.padding = paddingTop + ' ' + paddingRight;
                     style.border = '';
                 }
@@ -378,4 +221,180 @@ function AnimateButtons(options) {
     }
 
     setButtonsData.call(this);
+}
+
+function AnimatePictures(options) {
+    GetCoords.call(this);
+    IsMobileDevice.call(this);
+
+    var parentClass = document.getElementsByClassName(options.parentClass);
+    var tintClass = document.getElementsByClassName(options.tintClass);
+    var priceClass = document.getElementsByClassName(options.priceClass);
+    var carClass = document.getElementsByClassName(options.carClass);
+    var darkClass = document.getElementsByClassName(options.darkClass);
+    var clickListeners = [];
+    var fillColor = options.fillColor;
+    var tintColor = 'rgba(235, 70, 52, .5)';
+    var parts = options.parts;
+    var interval = options.interval;
+    var timeout, timer;
+
+    function cssRules () {
+        return [{
+            sheet: document.styleSheets[0],
+            selector: '.' + options.tintClass,
+            rules: 'transition: all .2s !important',
+            index: 0
+        }, {
+            sheet: document.styleSheets[0],
+            selector: '.hover, .' + options.parentClass + ':hover .' + options.tintClass,
+            rules: 'top: 0 !important;' +
+            'width:' + parentClass[0].offsetWidth + 'px !important;' +
+            'height:' + parentClass[0].offsetHeight + 'px !important;',
+            index: 0
+        }];
+    }
+
+    function deletePointerEvents() {
+        [tintClass, priceClass, carClass, darkClass].forEach(function (item) {
+            for (var i = 0; i < parentClass.length; i++)  {
+                item[i].style.pointerEvents = 'none'
+            }
+        })
+    }
+
+    function addCSSRule(sheet, selector, rules, index) {
+        if ('insertRule' in sheet) {
+            sheet.insertRule(selector + '{' + rules + '}', index);
+        }
+        else if ('addRule' in sheet) {
+            sheet.addRule(selector, rules, index);
+        }
+    }
+
+    function deleteCssRule(sheet, index) {
+        if ('deleteRule' in sheet)  sheet.deleteRule(index);
+        else if ('removeRule' in sheet)  sheet.removeRule(index)
+    }
+
+    function setCssRules(rules) {
+        rules.forEach(function (item) {
+            addCSSRule(item.sheet, item.selector, item.rules, item.index)
+        })
+    }
+
+    function setInitStyles() {
+        for (var i = 0; i < parentClass.length; i++)  {
+            var s = tintClass[i].style;
+            s.top = priceClass[i].offsetTop + 'px';
+            s.width = priceClass[i].offsetWidth + 'px';
+            s.height = priceClass[i].offsetHeight + 'px';
+            s.opacity = 1;
+            this.isMobile && (carClass[i].style.opacity = 1)
+        }
+    }
+
+    function initGradientArray() {
+        for (var i = 0, arr = []; i < parts; i++)  {
+            arr[i] = tintColor
+        }
+        return arr
+    }
+
+    function replaceElem(parent, child, backColor) {
+        var elem = document.createElement("DIV");
+        var s = elem.style;
+        s.pointerEvents = 'none';
+        s.position = 'absolute';
+        s.left = s.top = 0;
+        s.width = parent.offsetWidth + 'px';
+        s.height = parent.offsetHeight + 'px';
+        s.background = backColor;
+        parent.appendChild(elem);
+        parent.removeChild(child);
+        return elem
+    }
+
+    function setOnEvents ()  {
+        for (var i = 0; i < parentClass.length; i++)  {
+            parentClass[i].addEventListener('mouseover', onHover.bind(this));
+            parentClass[i].addEventListener('mouseout', onHover.bind(this));
+            parentClass[i].addEventListener('touchend', onClick.bind(this));
+            parentClass[i].addEventListener('click', clickListeners[i] = onClick.bind(this));
+        }
+        window.addEventListener('resize', onResize);
+    }
+
+    function onResize(event)  {
+        clearTimeout(timeout);
+        timeout = setTimeout(function () {
+            for (var i = 0; i < parentClass.length; i++)  {
+                var s = tintClass[i].style;
+                s.top = priceClass[i].offsetTop + 'px';
+                s.width = priceClass[i].offsetWidth + 'px';
+                s.height = priceClass[i].offsetHeight + 'px';
+            }
+            deleteCssRule(document.styleSheets[0], 0);
+            setCssRules(cssRules());
+        }, 200)
+    }
+
+    function onHover(event) {
+        for (var i = 0; i < parentClass.length; i++)  {
+            if (parentClass[i] === event.target)  break;
+        }
+        if (event.type == 'mouseout') {
+            clearTimeout(timeout);
+            clearInterval(timer);
+            carClass[i].style.opacity = 0;
+        }
+        else  {
+            timeout = setTimeout(function () {
+                var counter = 0;
+                timer = setInterval(function () {
+                    carClass[i].style.opacity = (++counter)/10;
+                    if (counter == 10) clearInterval(timer);
+                }, 15)
+            }, 100)
+        }
+    }
+
+    function onClick(event) {
+        event.preventDefault();
+
+        for (var i = 0; i < parentClass.length; i++)  {
+            if (parentClass[i] === event.target)  break;
+        }
+        if (event.type == 'touchend')  {
+            tintClass[i].classList.add('hover');
+            setTimeout(function () {
+                document.location.href = parentClass[i].href;
+            }, 150);
+            return
+        }
+
+        var s = replaceElem(parentClass[i], tintClass[i], tintColor).style;
+        priceClass[i].style.zIndex = 9;
+        carClass[i].style.zIndex = 10;
+
+        var gradientColors = initGradientArray();
+        var left = this.getEventCoordOnElem(event, event.target).x + 'px';
+        var top = this.getEventCoordOnElem(event, event.target).y + 'px';
+
+        var counter = 0;
+        timer = setInterval(function () {
+            gradientColors[counter++] = fillColor;
+            s.background = 'radial-gradient(circle farthest-side at ' + left + ' ' + top + ',' + gradientColors.join(',') + ')';
+            if (counter == parts)  {
+                clearInterval(timer);
+                event.target.removeEventListener('click', clickListeners[i]);
+                document.location.href = parentClass[i].href;
+            }
+        }, interval)
+    }
+
+    setInitStyles.call(this);
+    deletePointerEvents();
+    setCssRules(cssRules());
+    setOnEvents.call(this);
 }
