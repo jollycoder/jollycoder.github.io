@@ -239,6 +239,25 @@ function AnimatePictures(options) {
     var interval = options.interval;
     var timeout, timer;
 
+    function setInitStyles() {
+        for (var i = 0; i < parentClass.length; i++)  {
+            var s = tintClass[i].style;
+            s.top = priceClass[i].offsetTop + 'px';
+            s.width = priceClass[i].offsetWidth + 'px';
+            s.height = priceClass[i].offsetHeight + 'px';
+            s.opacity = 1;
+            this.isMobile && (carClass[i].style.opacity = 1)
+        }
+    }
+
+    function deletePointerEvents() {
+        [tintClass, priceClass, carClass, darkClass].forEach(function (item) {
+            for (var i = 0; i < parentClass.length; i++)  {
+                item[i].style.pointerEvents = 'none'
+            }
+        })
+    }
+
     function cssRules () {
         return [{
             sheet: document.styleSheets[0],
@@ -253,14 +272,6 @@ function AnimatePictures(options) {
             'height:' + parentClass[0].offsetHeight + 'px !important;',
             index: 0
         }];
-    }
-
-    function deletePointerEvents() {
-        [tintClass, priceClass, carClass, darkClass].forEach(function (item) {
-            for (var i = 0; i < parentClass.length; i++)  {
-                item[i].style.pointerEvents = 'none'
-            }
-        })
     }
 
     function addCSSRule(sheet, selector, rules, index) {
@@ -281,17 +292,6 @@ function AnimatePictures(options) {
         rules.forEach(function (item) {
             addCSSRule(item.sheet, item.selector, item.rules, item.index)
         })
-    }
-
-    function setInitStyles() {
-        for (var i = 0; i < parentClass.length; i++)  {
-            var s = tintClass[i].style;
-            s.top = priceClass[i].offsetTop + 'px';
-            s.width = priceClass[i].offsetWidth + 'px';
-            s.height = priceClass[i].offsetHeight + 'px';
-            s.opacity = 1;
-            this.isMobile && (carClass[i].style.opacity = 1)
-        }
     }
 
     function initGradientArray() {
