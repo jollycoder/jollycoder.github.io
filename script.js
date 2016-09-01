@@ -17,7 +17,7 @@ window.addEventListener('load', function () {
         priceClass: 'TopCarCard__price',
         carClass: 'TopCarCard__car-type',
         fillColor: 'rgba(0, 0, 0, 0)',                  // цвет заливки картинки при клике
-        parts: 16,                                      // количество частей в анимации картинок, чем больше — тем плавнее, но медленнее
+        parts: 20,                                      // количество частей в анимации картинок, чем больше — тем плавнее, но медленнее
         interval: 10                                    // задержка между частями анимации
     })
 });
@@ -59,12 +59,12 @@ function AnimateButtons(options) {
             event: 'mouseover',
             buttonTextColor: mainColor,
             fillColor: 'white',
-            handler: onHover1
+            handler: onHover
         },  {
             event: 'mouseout',
             buttonTextColor: 'white',
             fillColor: transColor,
-            handler: onHover1
+            handler: onHover
         },  {
             event: 'click',
             buttonTextColor: options.clickTextColor,
@@ -86,12 +86,12 @@ function AnimateButtons(options) {
             event: 'mouseover',
             buttonTextColor: mainColor,
             fillColor: 'white',
-            handler: onHover2
+            handler: onHover
         },  {
             event: 'mouseout',
             buttonTextColor: 'white',
             fillColor: transRed,
-            handler: onHover2
+            handler: onHover
         },  {
             event: 'click',
             fillColor: options.clickScreenFillColor,
@@ -168,17 +168,11 @@ function AnimateButtons(options) {
         }
     }
 
-    function onHover1(eventData, gradientColors, event) {
-        var i = getEventData(eventData, event);
-        i.style.color = eventData.buttonTextColor;
-        i.timer = setInterval(makeFill.bind(this, i, '50%', '50%', gradientColors), interval)
-    }
-
-    function onHover2(eventData, gradientColors, event) {
+    function onHover(eventData, gradientColors, event) {
         var i = getEventData(eventData, event);
         i.style.color = eventData.buttonTextColor;
 
-        if (i.mouseover)  {
+        if (i.targetButton1 && i.mouseover)  {
             i.style.padding = addToLeadNumber(i.paddingTop, -1) + ' ' + addToLeadNumber(i.paddingRight, -1);
             i.style.border = '1px solid ' + mainColor
         }
